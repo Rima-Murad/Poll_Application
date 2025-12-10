@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Live Results — Ice Cream Poll</title>
+
+  <!-- chart.js cdn -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #179ed8;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .dashboard {
+      background: white;
+      width: 92%;
+      max-width: 900px;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: flex;
+      gap: 30px;
+    }
+
+    .left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      margin-bottom: 16px;
+      font-family: Georgia, 'Times New Roman', Times, serif;
+      font-style: italic;
+      color: #333;
+      text-align: center;
+    }
+
+    #voterList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 400px;
+      overflow-y: auto;
+      font-size: 1.1rem;
+    }
+
+    #voterList li {
+      padding: 10px;
+      margin-bottom: 6px;
+      background: #f7f7f7;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="dashboard">
+
+    <div class="left">
+      <h1>❤︎ Ice Cream Poll ❤︎</h1>
+      <canvas id="pieChart" width="300" height="300"></canvas>
+    </div>
+
+    <div class="right">
+      <h1 style="font-size:1.4rem;">live vote feed</h1>
+      <ul id="voterList"></ul>
+    </div>
+
+  </div>
+
+  <script>
+    // lowercase comments only
+
+    // initialize chart.js pie chart with empty data first
+    const ctx = document.getElementById('pieChart').getContext('2d');
+    const pieChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: ['Chocolate', 'Strawberry', 'Vanilla'],
+        datasets: [{
+          data: [0, 0, 0],
+          backgroundColor: ['#8B4513', '#ff6b81', '#f3e5ab']
+        }]
+      },
+      options: {
+        responsive: true
+      }
+    });
+
+    // load results and update pie chart
+    async function loadResults() {
+      try {
+        const res = await fetch('/api/results');
+        const data = await res.json();
+
+        // update data in chart
+        pieChart.data.datasets[0].data = [
+          data.chocolate || 0,
+          data.strawberry || 0,
+          data.vanilla || 0
+        ];
+        pieChart.update();
+      } catch (err) {
+        console.error('failed to load results', err);
+      }
+    }
+
+    // load voters and update list (newest at top)
+    async function loadVoters() {
+      try {
+        const res = await fetch('/api/voters');
+        const list = await res.json();
+
+        const voterList = document.getElementById('voterList');
+        voterList.innerHTML = '';
+
+        // newest at top
+        list.reverse();
+
+        list.forEach(entry => {
+          const li = document.createElement('li');
+          const name = entry.name || 'anonymous';
+          li.textContent = name + ' voted ' + entry.flavor + '!';
+          voterList.appendChild(li);
+        });
+      } catch (err) {
+        console.error('failed to load voters', err);
+      }
+    }
+
+    // update every 2 seconds
+    function refreshLoop() {
+      loadResults();
+      loadVoters();
+    }
+
+    refreshLoop();
+    setInterval(refreshLoop, 2000);
+
+  </script>
+</body>
+</html>
