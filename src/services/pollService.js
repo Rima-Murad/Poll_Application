@@ -1,40 +1,46 @@
+// src/services/pollService.js
 const fs = require('fs');
 const path = require('path');
 
-// lowercase comments: load json helper
+// helper to load json synchronously
 function loadJSON(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-// lowercase comments: save json helper
+// helper to write json synchronously (atomic-ish)
 function saveJSON(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  // write to tmp file then rename for atomicity
+  const tmp = filePath + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
+  fs.renameSync(tmp, filePath);
 }
 
-const votesPath = path.join(__dirname, '../data/votes.json');
-const votersPath = path.join(__dirname, '../data/voters.json');
+// compute paths relative to this file's dir
+// go to src/services 
+const votesPath = path.join(__dirname, '../../data/votes.json');
+const votersPath = path.join(__dirname, '../../data/voters.json');
 
-// lowercase comments: record a vote
+// add a vote and persist
 function addVote(name, flavor) {
   const votes = loadJSON(votesPath);
   const voters = loadJSON(votersPath);
 
-  // increment vote count
+  // ensure flavor key exists
   votes[flavor] = (votes[flavor] || 0) + 1;
 
-  // add voter record (most recent at end)
-  voters.push({ name, flavor });
+  // append voter record (oldest first). tv.html reverses list for newest-first display
+  voters.push({ name: name || 'anonymous', flavor });
 
   saveJSON(votesPath, votes);
   saveJSON(votersPath, voters);
 }
 
-// lowercase comments: get tally of votes
+// return current tallies
 function getResults() {
   return loadJSON(votesPath);
 }
 
-// lowercase comments: get list of all voters
+// return voter array
 function getVoters() {
   return loadJSON(votersPath);
 }

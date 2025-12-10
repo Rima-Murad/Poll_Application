@@ -1,38 +1,52 @@
+// server.js
+
 const express = require('express');
 const path = require('path');
-const bodyParser = require('body-parser');
-const poll = require('./services/pollService');
+const poll = require('./src/services/pollService');
 
 const app = express();
 
-// lowercase comments: allow json in requests
-app.use(bodyParser.json());
+// parse json bodies
+app.use(express.json());
 
-// lowercase comments: serve html/js/css from public folder
+// serve static files from public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// lowercase comments: record vote (called by question.html)
+// record vote
 app.post('/api/vote', (req, res) => {
   const { name, flavor } = req.body;
-
   if (!flavor) {
     return res.status(400).json({ error: 'missing flavor' });
   }
 
-  poll.addVote(name || 'anonymous', flavor);
-  res.json({ success: true });
+  try {
+    poll.addVote(name || 'anonymous', flavor);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('save error', err);
+    res.status(500).json({ error: 'internal error' });
+  }
 });
 
-// lowercase comments: provide results for tv.html
+// return tally
 app.get('/api/results', (req, res) => {
-  res.json(poll.getResults());
+  try {
+    res.json(poll.getResults());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal error' });
+  }
 });
 
-// lowercase comments: provide voter list for tv.html
+// return voters
 app.get('/api/voters', (req, res) => {
-  res.json(poll.getVoters());
+  try {
+    res.json(poll.getVoters());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'internal error' });
+  }
 });
 
-// lowercase comments: run server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`server running on http://localhost:${PORT}`));

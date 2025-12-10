@@ -1,0 +1,22 @@
+{
+  "name": "poll_application",
+  "version": "1.0.0",
+  "description": "Thick-server poll application to serve as a capstone project for the course 4208 (Web Applications)",
+  "main": "server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}

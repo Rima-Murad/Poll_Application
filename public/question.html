@@ -178,21 +178,27 @@
           // if storage fails, continue without blocking submission
           console.warn('sessionStorage error', e);
         }
+        
 
-        // placeholder for where you'll call your server's api.
-        // make the actual fetch when api is ready; for now we simulate success quickly.
-        // the fetch would look like:
-        // fetch('/api/votes', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ name, flavor }) })
-        //   .then(res => { if (!res.ok) throw new Error('network error'); return res.json() })
-        //   .then(() => { /* success */ })
-        //   .catch(err => { /* show error */ });
-
-        // simulate a short delay so the user sees the loading state (keeps ui realistic)
-        setTimeout(function () {
-          // simulate success: navigate to submitted screen where submitted.html will read sessionStorage
-          setStatus('submitted — redirecting...', ''); // briefly show success message
+        // after hitting submit
+        fetch('/api/vote', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ name, flavor })
+        })
+        .then(res => {
+          if (!res.ok) throw new Error('network error');
+          return res.json();
+        })
+        .then(() => {
+          setStatus('submitted — redirecting...', '');
           window.location.href = 'submitted.html';
-        }, 550);
+        })
+        .catch(() => {
+          setStatus('something went wrong. try again?', 'error');
+          submitBtn.disabled = false;
+        });
+
       });
 
       // allow pressing Enter in the name field to focus first radio or submit if flavor chosen
