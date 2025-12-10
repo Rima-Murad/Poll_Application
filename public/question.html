@@ -1,89 +1,215 @@
-<html>
-    <head>
-        <title>Ice Cream Poll</title>
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background: #179ed8;
-                    margin: 0;
-                    padding: 0;
-                    display: flex;
-                    justify-content: center;
-                    align-items: left;
-                    height: 100vh;
-                }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ice Cream Poll</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #179ed8;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: left;
+      height: 100vh;
+    }
 
-                .container {
-                    background: white;
-                    padding: 30px;
-                    border-radius: 12px;
-                    width: 90%;
-                    max-width: 400px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                    text-align: left;
-                }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: left;
+    }
 
-                h1 {
-                    font-size: 1.7rem;
-                    margin-bottom: 20px;
-                    color: #333;
-                    font-family: Georgia, 'Times New Roman', Times, serif;
-                    font-style: italic;
-                    align-items: left;
-                    
-                }
+    /* page title with hearts + serif italic feel */
+    #title h1 {
+      font-size: 1.7rem;
+      margin: 0 0 12px 0;
+      color: #333;
+      font-family: Georgia, 'Times New Roman', Times, serif;
+      font-style: italic;
+    }
 
-                .option {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    margin: 10px 0;
-                    font-size: 1rem;
-                }
+    .label {
+      font-weight: 600;
+      margin-top: 12px;
+      display: block;
+    }
 
-                button {
-                    width: 100%;
-                    margin-top: 20px;
-                    padding: 12px;
-                    font-size: 1.1rem;
-                    background: #ffffff;
-                    color: rgb(0, 0, 0);
-                    border: none;
-                    border-radius: 6px;
-                    cursor: pointer;
-                }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+    }
 
-                button:hover {
-                    background: #179ed8;
-                }
-            </style>
-    </head>
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+      font-size: 1rem;
+    }
 
-    <body>
-        <div id='title'>
-            <h1> ❤︎ Ice Cream Poll ❤︎ </h1>
-        <body>
-            <div class="container">
-                <h1>Which ice cream flavor is the best?</h1>
+    .status {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      color: #333;
+      min-height: 1.2rem;
+    }
 
-                <label class="option">
-                <input type="radio" name="flavor" value="chocolate" />
-                Chocolate
-                </label>
+    .status.loading {
+      color: #0d6efd;
+    }
 
-                <label class="option">
-                <input type="radio" name="flavor" value="strawberry" />
-                Strawberry
-                </label>
+    .status.error {
+      color: #c92a2a;
+    }
 
-                <label class="option">
-                <input type="radio" name="flavor" value="vanilla" />
-                Vanilla
-                </label>
+    button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      font-size: 1.1rem;
+      background: #ffffff;
+      color: rgb(0, 0, 0);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-                <button id="submitBtn">Submit</button>
-            </div>
+    button[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
-        </body>
-    
+    button:hover:not([disabled]) {
+      background: #179ed8;
+    }
+  </style>
+</head>
+<body>
+  <div id="title" class="container" role="main" aria-labelledby="page-title">
+    <h1 id="page-title"> ❤︎ Ice Cream Poll ❤︎ </h1>
+
+    <!-- optional name field: if you already collect the name on a prior screen you can remove this -->
+    <label class="label" for="nameInput">your name (optional)</label>
+    <input id="nameInput" type="text" placeholder="e.g., alex" autocomplete="name" />
+
+    <h1 style="font-size:1.25rem; margin-top:14px; font-weight:600;">Which ice cream flavor is the best?</h1>
+
+    <label class="option">
+      <input type="radio" name="flavor" value="chocolate" />
+      Chocolate
+    </label>
+
+    <label class="option">
+      <input type="radio" name="flavor" value="strawberry" />
+      Strawberry
+    </label>
+
+    <label class="option">
+      <input type="radio" name="flavor" value="vanilla" />
+      Vanilla
+    </label>
+
+    <!-- feedback area for loading/success/errors -->
+    <div id="status" class="status" aria-live="polite"></div>
+
+    <button id="submitBtn" type="button">Submit</button>
+  </div>
+
+  <script>
+    // lowercase comments per preference
+    (function () {
+      const submitBtn = document.getElementById('submitBtn');
+      const statusEl = document.getElementById('status');
+      const nameInput = document.getElementById('nameInput');
+
+      // restore saved values from sessionStorage (so back/forward keeps them)
+      try {
+        const savedName = sessionStorage.getItem('participant_name');
+        const savedFlavor = sessionStorage.getItem('icecream_choice');
+        if (savedName) nameInput.value = savedName;
+        if (savedFlavor) {
+          const radio = document.querySelector("input[name='flavor'][value='" + savedFlavor + "']");
+          if (radio) radio.checked = true;
+        }
+      } catch (e) {
+        // ignore storage errors
+      }
+
+      function setStatus(text, type) {
+        statusEl.textContent = text;
+        statusEl.className = 'status' + (type ? ' ' + type : '');
+      }
+
+      function getSelectedFlavor() {
+        const checked = document.querySelector("input[name='flavor']:checked");
+        return checked ? checked.value : null;
+      }
+
+      submitBtn.addEventListener('click', function () {
+        const flavor = getSelectedFlavor();
+        const name = nameInput.value && nameInput.value.trim();
+
+        if (!flavor) {
+          setStatus('please select a flavor before submitting.', 'error');
+          return;
+        }
+
+        // ui: show loading state and disable inputs
+        setStatus('submitting your choice...', 'loading');
+        submitBtn.disabled = true;
+
+        // save to sessionStorage (thin-client only; server calls go in services)
+        try {
+          sessionStorage.setItem('icecream_choice', flavor);
+          if (name) sessionStorage.setItem('participant_name', name);
+        } catch (e) {
+          // if storage fails, continue without blocking submission
+          console.warn('sessionStorage error', e);
+        }
+
+        // placeholder for where you'll call your server's api.
+        // make the actual fetch when api is ready; for now we simulate success quickly.
+        // the fetch would look like:
+        // fetch('/api/votes', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ name, flavor }) })
+        //   .then(res => { if (!res.ok) throw new Error('network error'); return res.json() })
+        //   .then(() => { /* success */ })
+        //   .catch(err => { /* show error */ });
+
+        // simulate a short delay so the user sees the loading state (keeps ui realistic)
+        setTimeout(function () {
+          // simulate success: navigate to submitted screen where submitted.html will read sessionStorage
+          setStatus('submitted — redirecting...', ''); // briefly show success message
+          window.location.href = 'submitted.html';
+        }, 550);
+      });
+
+      // allow pressing Enter in the name field to focus first radio or submit if flavor chosen
+      nameInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          // if a flavor is selected, submit; otherwise focus first radio
+          const flavor = getSelectedFlavor();
+          if (flavor) {
+            submitBtn.click();
+          } else {
+            const firstRadio = document.querySelector("input[name='flavor']");
+            if (firstRadio) firstRadio.focus();
+          }
+        }
+      });
+    })();
+  </script>
+</body>
 </html>

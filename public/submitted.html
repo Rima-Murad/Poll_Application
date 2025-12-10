@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Submitted — Ice Cream Poll</title>
+  <style>
+    /* layout + theme matches question screen */
+    body {
+      font-family: Arial, sans-serif;
+      background: #179ed8;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: left;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+
+    /* page title style (keeps the hearts + serif italic feel) */
+    #title h1 {
+      font-size: 1.7rem;
+      margin: 0 0 12px 0;
+      color: #333;
+      font-family: Georgia, 'Times New Roman', Times, serif;
+      font-style: italic;
+    }
+
+    .status {
+      font-size: 1.15rem;
+      margin: 12px 0;
+      color: #222;
+    }
+
+    .subtext {
+      color: #444;
+      margin-top: 8px;
+    }
+
+    .big-check {
+      font-size: 3.2rem;
+      line-height: 1;
+      color: #2c7a2c;
+      margin-bottom: 6px;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      font-size: 1.1rem;
+      background: #ffffff;
+      color: rgb(0, 0, 0);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #179ed8;
+    }
+
+    /* small helper line for the flavor echo (if available) */
+    .flavor-echo {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="title" class="container">
+    <!-- page title -->
+    <h1> ❤︎ Ice Cream Poll ❤︎ </h1>
+
+    <!-- main status block -->
+    <div class="big-check">✔</div>
+    <div class="status">Look up at the screen!</div>
+
+    <!-- optional: echo the chosen flavor if the client stored it beforehand -->
+    <div id="flavorEcho" class="flavor-echo" aria-live="polite"></div>
+
+    <!-- button to return to the question/join page -->
+    <button id="returnBtn" type="button">return to poll</button>
+  </div>
+
+  <script>
+    // lowercase comments per preference
+    // if the question page stored the choice in sessionStorage (thin-client hook),
+    // show it here as a friendly echo. this is purely ui; no business logic.
+    (function () {
+      const echo = document.getElementById('flavorEcho');
+      try {
+        const flavor = sessionStorage.getItem('icecream_choice'); // expected key from question page
+        const name = sessionStorage.getItem('participant_name'); // optional name
+        if (flavor) {
+          const who = name;
+          echo.textContent = who + ' picked ' + flavor + '!';
+        }
+      } catch (e) {
+        // do nothing if sessionStorage is unavailable
+      }
+
+      // return button: go back to question screen
+      document.getElementById('returnBtn').addEventListener('click', () => {
+        // navigate back to question page (adjust filename if different)
+        window.location.href = 'question.html';
+      });
+    })();
+  </script>
+</body>
+</html>

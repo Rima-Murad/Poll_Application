@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ice Cream Poll</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #179ed8;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: left;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+
+    #title h1 {
+      font-size: 1.7rem;
+      margin: 0 0 12px 0;
+      color: #333;
+      font-family: Georgia, 'Times New Roman', Times, serif;
+      font-style: italic;
+    }
+
+    label {
+      font-weight: 600;
+      margin-top: 16px;
+      display: block;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      box-sizing: border-box;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      font-size: 1rem;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      min-height: 1.2rem;
+      color: #c92a2a;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      font-size: 1.1rem;
+      background: #ffffff;
+      color: rgb(0, 0, 0);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #179ed8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="title">
+    <h1> ❤︎ Ice Cream Poll ❤︎ </h1>
+
+    <label for="nameInput">enter your name</label>
+    <input id="nameInput" type="text" placeholder="e.g., alex" autocomplete="name" />
+
+    <div id="status" class="status" aria-live="polite"></div>
+
+    <button id="startBtn" type="button">start poll</button>
+  </div>
+
+  <script>
+    // lowercase comments per preference
+    (function () {
+      const startBtn = document.getElementById('startBtn');
+      const nameInput = document.getElementById('nameInput');
+      const statusEl = document.getElementById('status');
+
+      // restore previous name if user returns
+      try {
+        const saved = sessionStorage.getItem('participant_name');
+        if (saved) nameInput.value = saved;
+      } catch (e) {
+        // ignore storage issues
+      }
+
+      function setStatus(text) {
+        statusEl.textContent = text;
+      }
+
+      startBtn.addEventListener('click', function () {
+        const name = nameInput.value.trim();
+
+        if (!name) {
+          setStatus('please enter your name to begin.');
+          return;
+        }
+
+        // clear error
+        setStatus('');
+
+        // save name for next screen
+        try {
+          sessionStorage.setItem('participant_name', name);
+        } catch (e) {
+          // continue even if sessionStorage fails
+        }
+
+        // navigate to the poll question screen
+        window.location.href = 'question.html';
+      });
+
+      // allow pressing enter to start
+      nameInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          startBtn.click();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
